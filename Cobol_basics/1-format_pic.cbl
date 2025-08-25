@@ -15,6 +15,6 @@
 
            DISPLAY "Customer-ID : " CUSTOMER-ID.
            DISPLAY "Account-Balance : " ACCOUNT-BALANCE-FMT.
-           DISPLAY "Interest-Rate   : " INTEREST-RATE-FMT "%".
+           DISPLAY "Interest-Rate : " INTEREST-RATE-FMT "%".
 
            STOP RUN.
