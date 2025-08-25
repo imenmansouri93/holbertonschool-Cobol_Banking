@@ -13,15 +13,15 @@
            DISPLAY "Initial Balance : " AMOUNT-FMT.
 
            MOVE DEPOSIT-AMOUNT TO AMOUNT-FMT.
-           DISPLAY "Deposited : " AMOUNT-FMT.
+           DISPLAY "Deposited       : " AMOUNT-FMT.
 
            MOVE WITHDRAWAL-AMOUNT TO AMOUNT-FMT.
-           DISPLAY "Withdrawn : " AMOUNT-FMT.
+           DISPLAY "Withdrawn       : " AMOUNT-FMT.
 
            ADD DEPOSIT-AMOUNT TO ACCOUNT-BALANCE.
            SUBTRACT WITHDRAWAL-AMOUNT FROM ACCOUNT-BALANCE.
            MOVE ACCOUNT-BALANCE TO AMOUNT-FMT.
-           DISPLAY "Final Balance : " AMOUNT-FMT.
+           DISPLAY "Final Balance   : " AMOUNT-FMT.
 
            STOP RUN.
 
