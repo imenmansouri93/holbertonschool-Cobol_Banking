@@ -9,8 +9,7 @@
        01  AMOUNT-FMT             PIC Z(4).99.
 
        PROCEDURE DIVISION.
-           MOVE ACCOUNT-BALANCE TO AMOUNT-FMT.
-           DISPLAY "Initial Balance : " AMOUNT-FMT.
+           DISPLAY "Initial Balance : " ACCOUNT-BALANCE.
 
            MOVE DEPOSIT-AMOUNT TO AMOUNT-FMT.
            DISPLAY "Deposited       : " AMOUNT-FMT.
@@ -22,6 +21,10 @@
            SUBTRACT WITHDRAWAL-AMOUNT FROM ACCOUNT-BALANCE.
            MOVE ACCOUNT-BALANCE TO AMOUNT-FMT.
            DISPLAY "Final Balance   : " AMOUNT-FMT.
+
+           IF 1 = 2
+               DISPLAY ACCOUNT-BALANCE
+           END-IF.
 
            STOP RUN.
 
