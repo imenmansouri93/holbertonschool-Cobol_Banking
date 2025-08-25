@@ -13,8 +13,8 @@
            MOVE ACCOUNT-BALANCE TO ACCOUNT-BALANCE-FMT.
            MOVE INTEREST-RATE  TO INTEREST-RATE-FMT.
 
-           DISPLAY "Customer-ID : " CUSTOMER-ID.
-           DISPLAY "Account-Balance : " ACCOUNT-BALANCE-FMT.
-           DISPLAY "Interest-Rate : " INTEREST-RATE-FMT "%".
+           DISPLAY "Customer ID : " CUSTOMER-ID.
+           DISPLAY "Account Balance : " ACCOUNT-BALANCE-FMT.
+           DISPLAY "Interest Rate : " INTEREST-RATE-FMT "%".
 
            STOP RUN.
