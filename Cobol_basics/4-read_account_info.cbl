@@ -4,7 +4,7 @@
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01  WS-ACCOUNT-NUMBER      PIC 9(6).          *> 6 digits with leading zeros
-       01  WS-BALANCE             PIC 9(7)V99.       *> 7 digits before decimal, 2 after
+       01  WS-BALANCE             PIC 9(6)V99.       *> 7 digits before decimal, 2 after
 
        PROCEDURE DIVISION.
            DISPLAY "Please enter your account number: "
