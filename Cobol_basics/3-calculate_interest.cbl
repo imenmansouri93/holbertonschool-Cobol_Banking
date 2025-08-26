@@ -1,0 +1,32 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CALCULATE-INTEREST.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  PRINCIPAL        PIC 9(6)V99 VALUE 1000.00.
+       01  INTEREST-RATE           PIC 99V99 VALUE 5.00.
+       01  TIME-YEARS              PIC 9(2) VALUE 3.
+       01  SIMPLE-INTEREST         PIC 9(5)V99 VALUE 0.
+       01  COMPOUND-INTEREST       PIC 9(5)V99 VALUE 0.
+       01  TEMP-AMOUNT             PIC 9(8)V9999 VALUE 0.
+       01  COUNTER                 PIC 9(2) VALUE 1.
+
+       PROCEDURE DIVISION.
+           COMPUTE SIMPLE-INTEREST = (PRINCIPAL * INTEREST-RATE
+               * TIME-YEARS) / 100
+
+           MOVE PRINCIPAL TO TEMP-AMOUNT
+           PERFORM TIME-YEARS TIMES
+               COMPUTE TEMP-AMOUNT = TEMP-AMOUNT +
+                   (TEMP-AMOUNT * INTEREST-RATE / 100)
+           END-PERFORM
+
+
+           COMPUTE COMPOUND-INTEREST ROUNDED = TEMP-AMOUNT - PRINCIPAL
+
+           DISPLAY "Simple Interest is     : " 
+                   SIMPLE-INTEREST
+           DISPLAY "Compound Interest is   : "
+                   COMPOUND-INTEREST
+
+           STOP RUN.
