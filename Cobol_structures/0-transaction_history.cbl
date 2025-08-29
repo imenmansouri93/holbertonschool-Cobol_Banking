@@ -1,53 +1,67 @@
-000100 IDENTIFICATION DIVISION.
-000200 PROGRAM-ID.  TRANSACTION-HISTORY.
-000300 DATA DIVISION.
-000400 WORKING-STORAGE SECTION.
-000500 77  WS-CUSTID          PIC X(9).
-000600 77  WS-COUNT           PIC 9(1) VALUE 5.
-000700 77  I                  PIC 9(1).
-000800 77  WS-RUNNING-BALANCE PIC S9(7)V99 VALUE 0.
-000900 77  WS-AMOUNT-DISPLAY  PIC +Z,ZZ9.99.
-001000 77  WS-BALANCE-DISPLAY PIC +Z,ZZ9.99.
-001100 01  TRANS-TAB OCCURS 5 TIMES.
-001200     05  T-DATE   PIC X(10).
-001300     05  T-DESC   PIC X(30).
-001400     05  T-AMT    PIC S9(7)V99.
-001500 PROCEDURE DIVISION.
-001600 MAIN-PARA.
-001700     DISPLAY "Enter Customer ID (9 characters): " WITH NO ADVANCING
-001800     ACCEPT WS-CUSTID
-001900
-002000     PERFORM VARYING I FROM 1 BY 1 UNTIL I > WS-COUNT
-002100         DISPLAY "Enter transaction "
-002200         DISPLAY I " date (DD/MM/YYYY): " WITH NO ADVANCING
-002300         ACCEPT T-DATE OF TRANS-TAB(I)
-002400         DISPLAY "Enter transaction "
-002500         DISPLAY I " description: " WITH NO ADVANCING
-002600         ACCEPT T-DESC OF TRANS-TAB(I)
-002700         DISPLAY "Enter transaction "
-002800         DISPLAY I " amount: " WITH NO ADVANCING
-002900         ACCEPT T-AMT OF TRANS-TAB(I)
-003000     END-PERFORM
-003100
-003200     DISPLAY "----------------------------------------------------"
-003300     DISPLAY "Date       Description          Amount       Balance"
-003400     DISPLAY "----------------------------------------------------"
-003500
-003600     MOVE 0 TO WS-RUNNING-BALANCE
-003700
-003800    PERFORM VARYING I FROM 1 BY 1 UNTIL I > WS-COUNT
-003900         ADD T-AMT OF TRANS-TAB(I) TO WS-RUNNING-BALANCE
-004000         MOVE T-AMT OF TRANS-TAB(I) TO WS-AMOUNT-DISPLAY
-004100         MOVE WS-RUNNING-BALANCE TO WS-BALANCE-DISPLAY
-004200         DISPLAY T-DATE OF TRANS-TAB(I)
-004300         DISPLAY "  "
-004400         DISPLAY T-DESC OF TRANS-TAB(I)
-004500         DISPLAY "  "
-004600         DISPLAY WS-AMOUNT-DISPLAY
-004700         DISPLAY "  "
-004800         DISPLAY WS-BALANCE-DISPLAY
-004900     END-PERFORM
-005000
-005100     DISPLAY "----------------------------------------------------"
-005200     DISPLAY "End of Report"
-005300     STOP RUN.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TRANSACTION-HISTORY.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       77 WS-CUSTID          PIC X(9).
+       77 WS-COUNT           PIC 9 VALUE 5.
+       77 I                  PIC 9.
+       77 WS-RUNNING-BALANCE PIC S9(7)V99 VALUE 0.
+       77 WS-AMOUNT-DISPLAY  PIC S9(7)V99.
+       77 WS-BALANCE-DISPLAY PIC S9(7)V99.
+       77 WS-TEMP-DATE       PIC X(10).
+       77 WS-TEMP-DESC       PIC X(20).
+       77 WS-TEMP-AMT        PIC S9(7)V99.
+
+       01 TRANS-TAB OCCURS 5 TIMES.
+          05 T-DATE   PIC X(10).
+          05 T-DESC   PIC X(20).
+          05 T-AMT    PIC S9(7)V99.
+
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           DISPLAY "Enter Customer ID (9 characters):" WITH NO ADVANCING.
+           ACCEPT WS-CUSTID.
+
+           PERFORM VARYING I FROM 1 BY 1 UNTIL I > WS-COUNT
+               DISPLAY "Enter transaction ", I, " date (DD/MM/YYYY): " 
+                       WITH NO ADVANCING
+               ACCEPT WS-TEMP-DATE
+               MOVE WS-TEMP-DATE TO T-DATE OF TRANS-TAB(I)
+
+               DISPLAY "Enter transaction ", I, " description: " 
+                       WITH NO ADVANCING
+               ACCEPT WS-TEMP-DESC
+               MOVE WS-TEMP-DESC TO T-DESC OF TRANS-TAB(I)
+
+               DISPLAY "Enter transaction ", I, " amount: " 
+                       WITH NO ADVANCING
+               ACCEPT WS-TEMP-AMT
+               MOVE WS-TEMP-AMT TO T-AMT OF TRANS-TAB(I)
+           END-PERFORM.
+
+
+           DISPLAY "--------------------------------------------------".
+           DISPLAY "      CUSTOMER TRANSACTION HISTORY".
+           DISPLAY "      Customer ID : " WS-CUSTID.
+           DISPLAY "--------------------------------------------------".
+           DISPLAY "Date       Description          Amount     Balance".
+           DISPLAY "--------------------------------------------------".
+
+           MOVE 0 TO WS-RUNNING-BALANCE.
+
+           PERFORM VARYING I FROM 1 BY 1 UNTIL I > WS-COUNT
+               ADD T-AMT OF TRANS-TAB(I) TO WS-RUNNING-BALANCE
+               MOVE T-AMT OF TRANS-TAB(I) TO WS-AMOUNT-DISPLAY
+               MOVE WS-RUNNING-BALANCE TO WS-BALANCE-DISPLAY
+
+               DISPLAY T-DATE OF TRANS-TAB(I), " ",
+                       T-DESC OF TRANS-TAB(I), " ",
+                       WS-AMOUNT-DISPLAY, " ",
+                       WS-BALANCE-DISPLAY
+           END-PERFORM.
+
+           DISPLAY "--------------------------------------------------".
+           DISPLAY "End of Report".
+
+           STOP RUN.
