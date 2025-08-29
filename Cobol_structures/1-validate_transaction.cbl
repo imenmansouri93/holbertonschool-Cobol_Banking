@@ -13,7 +13,7 @@
            IF WS-AMOUNT > 0 AND WS-AMOUNT <= 10000
                DISPLAY "Transaction is valid."
            ELSE
-               DISPLAY "Invalid transaction amount."
+               DISPLAY "Invalid transaction amount!"
            END-IF.
 
            STOP RUN.
