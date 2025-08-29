@@ -1,67 +1,54 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. TRANSACTION-HISTORY.
-
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       77 WS-CUSTID          PIC X(9).
-       77 WS-COUNT           PIC 9 VALUE 5.
-       77 I                  PIC 9.
-       77 WS-RUNNING-BALANCE PIC S9(7)V99 VALUE 0.
-       77 WS-AMOUNT-DISPLAY  PIC S9(7)V99.
-       77 WS-BALANCE-DISPLAY PIC S9(7)V99.
-       77 WS-TEMP-DATE       PIC X(10).
-       77 WS-TEMP-DESC       PIC X(20).
-       77 WS-TEMP-AMT        PIC S9(7)V99.
-
-       01 TRANS-TAB OCCURS 5 TIMES.
-          05 T-DATE   PIC X(10).
-          05 T-DESC   PIC X(20).
-          05 T-AMT    PIC S9(7)V99.
-
+       01 CUSTOMER-ID         PIC X(9).
+       01 HEAD-LINE           PIC X(52) VALUE ALL "-".
+       01 TRANSACTIONS.
+          05 TX-DATE        OCCURS 5 TIMES PIC X(10).
+          05 TX-DESC        OCCURS 5 TIMES PIC X(20).
+          05 TX-AMOUNT      OCCURS 5 TIMES PIC S9(5)V99 COMP-3.
+          05 TX-BALANCE     OCCURS 5 TIMES PIC S9(5)V99 COMP-3.
+       01 DISPLAY-AMOUNT     PIC +Z,ZZZ.99.
+       01 DISPLAY-BALANCE    PIC Z,ZZZ.99.
+       01 I                 PIC 9 VALUE 1.
+       01 CURRENT-BALANCE   PIC S9(5)V99 COMP-3 VALUE 0.
+       01 USER-AMOUNT       PIC S9(5)V99.
+       01 TEMP-AMOUNT       PIC S9(5)V99 COMP-3.
        PROCEDURE DIVISION.
-       MAIN-PARA.
-           DISPLAY "Enter Customer ID (9 characters):" WITH NO ADVANCING.
-           ACCEPT WS-CUSTID.
-
-           PERFORM VARYING I FROM 1 BY 1 UNTIL I > WS-COUNT
-               DISPLAY "Enter transaction ", I, " date (DD/MM/YYYY): " 
-                       WITH NO ADVANCING
-               ACCEPT WS-TEMP-DATE
-               MOVE WS-TEMP-DATE TO T-DATE OF TRANS-TAB(I)
-
-               DISPLAY "Enter transaction ", I, " description: " 
-                       WITH NO ADVANCING
-               ACCEPT WS-TEMP-DESC
-               MOVE WS-TEMP-DESC TO T-DESC OF TRANS-TAB(I)
-
-               DISPLAY "Enter transaction ", I, " amount: " 
-                       WITH NO ADVANCING
-               ACCEPT WS-TEMP-AMT
-               MOVE WS-TEMP-AMT TO T-AMT OF TRANS-TAB(I)
-           END-PERFORM.
-
-
-           DISPLAY "--------------------------------------------------".
-           DISPLAY "      CUSTOMER TRANSACTION HISTORY".
-           DISPLAY "      Customer ID : " WS-CUSTID.
-           DISPLAY "--------------------------------------------------".
-           DISPLAY "Date       Description          Amount     Balance".
-           DISPLAY "--------------------------------------------------".
-
-           MOVE 0 TO WS-RUNNING-BALANCE.
-
-           PERFORM VARYING I FROM 1 BY 1 UNTIL I > WS-COUNT
-               ADD T-AMT OF TRANS-TAB(I) TO WS-RUNNING-BALANCE
-               MOVE T-AMT OF TRANS-TAB(I) TO WS-AMOUNT-DISPLAY
-               MOVE WS-RUNNING-BALANCE TO WS-BALANCE-DISPLAY
-
-               DISPLAY T-DATE OF TRANS-TAB(I), " ",
-                       T-DESC OF TRANS-TAB(I), " ",
-                       WS-AMOUNT-DISPLAY, " ",
-                       WS-BALANCE-DISPLAY
-           END-PERFORM.
-
-           DISPLAY "--------------------------------------------------".
-           DISPLAY "End of Report".
-
+           DISPLAY "Enter Customer ID (9 characters): "
+           ACCEPT CUSTOMER-ID
+           PERFORM VARYING I FROM 1 BY 1 UNTIL I > 5
+               DISPLAY "Enter transaction " I " date (DD/MM/YYYY): "
+               ACCEPT TX-DATE(I)
+               DISPLAY "Enter transaction " I " description: "
+               ACCEPT TX-DESC(I)
+               DISPLAY "Enter transaction " I " amount: "
+               ACCEPT USER-AMOUNT
+               MOVE USER-AMOUNT TO TEMP-AMOUNT
+               MOVE TEMP-AMOUNT TO TX-AMOUNT(I)
+           END-PERFORM
+           PERFORM CALCULATE-BALANCES
+           DISPLAY HEAD-LINE
+           DISPLAY "      CUSTOMER TRANSACTION HISTORY"
+           DISPLAY "      Customer ID : " CUSTOMER-ID(1:8)
+           DISPLAY HEAD-LINE
+           DISPLAY 
+           "Date       Description          Amount       Balance"
+           DISPLAY HEAD-LINE
+           PERFORM VARYING I FROM 1 BY 1 UNTIL I > 5
+               MOVE TX-AMOUNT(I) TO DISPLAY-AMOUNT
+               MOVE TX-BALANCE(I) TO DISPLAY-BALANCE
+               DISPLAY TX-DATE(I) SPACE
+                       TX-DESC(I) SPACE
+                       DISPLAY-AMOUNT SPACE
+                       DISPLAY-BALANCE
+           END-PERFORM
+           DISPLAY HEAD-LINE
+           DISPLAY "End of Report"
            STOP RUN.
+       CALCULATE-BALANCES.
+           PERFORM VARYING I FROM 1 BY 1 UNTIL I > 5
+               ADD TX-AMOUNT(I) TO CURRENT-BALANCE
+               MOVE CURRENT-BALANCE TO TX-BALANCE(I)
+           END-PERFORM.
