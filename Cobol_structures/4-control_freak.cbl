@@ -11,8 +11,9 @@
        PROCEDURE DIVISION.
        MAIN-PARA.
            PERFORM UNTIL OPERATION = "Q"
-               DISPLAY "Enter operation [D=Deposit, W=Withdraw,"
-               DISPLAY " B=Balance, Q=Quit]: "
+               DISPLAY "Enter operation [D=Deposit, W=Withdraw, B=Balanc
+      -        "e, Q=Quit]: "
+
                ACCEPT OPERATION
 
                EVALUATE OPERATION
