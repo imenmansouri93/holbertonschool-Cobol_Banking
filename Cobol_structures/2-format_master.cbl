@@ -56,4 +56,3 @@
            MOVE CUST-STATUS (I) TO OUT-STATUS
            DISPLAY "|  " OUT-ID " | " OUT-NAME " | " OUT-BAL
                "  | " OUT-RATE "%" " | " OUT-STATUS "|".
-           STOP RUN.
