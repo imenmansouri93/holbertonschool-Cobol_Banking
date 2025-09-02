@@ -1,0 +1,11 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. WELCOME.
+
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 USER-NAME-LINKAGE     PIC X(20).
+
+       PROCEDURE DIVISION USING USER-NAME-LINKAGE.
+       DISPLAY "Welcome, " USER-NAME-LINKAGE
+       DISPLAY "You've entered the COBOL modular programming."
+       GOBACK.
