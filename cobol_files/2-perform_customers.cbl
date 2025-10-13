@@ -1,59 +1,47 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. PERFORM-CUSTOMERS-FIXED.
-
+       PROGRAM-ID. PERFORM-CUSTOMERS.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT CUSTOMER-FILE ASSIGN TO "CUSTOMERS.DAT"
                ORGANIZATION IS LINE SEQUENTIAL.
-
        DATA DIVISION.
        FILE SECTION.
-       FD CUSTOMER-FILE.
-       01 CUSTOMER-RECORD       PIC X(33).
-
+       FD  CUSTOMER-FILE.
+       01  CUSTOMER-RECORD   PIC X(33).
        WORKING-STORAGE SECTION.
-       01 WS-CUST-ID-INPUT      PIC X(5).
-       01 WS-CUST-ID-NUM        PIC 9(5).
-       01 WS-CUST-FNAME         PIC X(10).
-       01 WS-CUST-LNAME         PIC X(10).
-       01 WS-BALANCE-INPUT      PIC X(8).
-       01 WS-BALANCE-NUMERIC    PIC 9(5)V99.
-       01 WS-BALANCE-FORMAT     PIC X(8).
-       01 WS-ANSWER             PIC X VALUE "Y".
-
+       01  CUST-ID           PIC 9(5).
+       01  CUST-FNAME        PIC X(10).
+       01  CUST-LNAME        PIC X(10).
+       01  BALANCE           PIC 9(5).99.
+       01  CUST-BALANCE-STRING PIC X(8).
+       01  CONTINUE-FLAG     PIC X VALUE "Y".
        PROCEDURE DIVISION.
-       MAIN-PARA.
+       BEGIN.
            OPEN EXTEND CUSTOMER-FILE
-           PERFORM UNTIL WS-ANSWER = "N" OR WS-ANSWER = "n"
+           PERFORM UNTIL CONTINUE-FLAG NOT = "Y"
                DISPLAY "Enter Customer ID (5 digits): "
-               ACCEPT WS-CUST-ID-INPUT
-               MOVE FUNCTION NUMVAL-C(WS-CUST-ID-INPUT) TO WS-CUST-ID-NUM
-
+               ACCEPT CUST-ID
                DISPLAY "Enter First Name (max 10 characters): "
-               ACCEPT WS-CUST-FNAME
-               MOVE FUNCTION TRIM(WS-CUST-FNAME TRAILING) TO WS-CUST-FNAME
-
+               
+               ACCEPT CUST-FNAME
                DISPLAY "Enter Last Name (max 10 characters): "
-               ACCEPT WS-CUST-LNAME
-               MOVE FUNCTION TRIM(WS-CUST-LNAME TRAILING) TO WS-CUST-LNAME
-
+               ACCEPT CUST-LNAME
                DISPLAY "Enter Balance (less than 99999.99): "
-               ACCEPT WS-BALANCE-INPUT
-               COMPUTE WS-BALANCE-NUMERIC = FUNCTION NUMVAL(WS-BALANCE-INPUT)
-               MOVE WS-BALANCE-NUMERIC TO WS-BALANCE-FORMAT
-
-               MOVE SPACES TO CUSTOMER-RECORD
-               MOVE WS-CUST-ID-NUM TO CUSTOMER-RECORD(1:5)
-               MOVE WS-CUST-FNAME TO CUSTOMER-RECORD(6:10)
-               MOVE WS-CUST-LNAME TO CUSTOMER-RECORD(16:10)
-               MOVE WS-BALANCE-FORMAT TO CUSTOMER-RECORD(26:8)
-
-               WRITE CUSTOMER-RECORD
-
+               ACCEPT BALANCE
+               MOVE BALANCE TO CUST-BALANCE-STRING
+               STRING
+                   CUST-ID 
+                   CUST-FNAME 
+                   CUST-LNAME 
+                   CUST-BALANCE-STRING
+               DELIMITED BY SIZE 
+           INTO CUSTOMER-RECORD
+           WRITE CUSTOMER-RECORD
                DISPLAY "Record written. Add another? (Y/N): "
-               ACCEPT WS-ANSWER
-               MOVE FUNCTION UPPER-CASE(WS-ANSWER) TO WS-ANSWER
+               
+               ACCEPT CONTINUE-FLAG
+               MOVE FUNCTION UPPER-CASE(CONTINUE-FLAG) TO CONTINUE-FLAG
            END-PERFORM
            CLOSE CUSTOMER-FILE
            DISPLAY "All records saved. Goodbye!"
