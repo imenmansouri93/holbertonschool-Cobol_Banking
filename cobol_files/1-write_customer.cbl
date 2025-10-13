@@ -1,0 +1,45 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. WRITE-CUSTOMER.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT CUSTOMER-FILE ASSIGN TO "CUSTOMERS.DAT"
+               ORGANIZATION IS SEQUENTIAL
+               ACCESS MODE IS SEQUENTIAL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD CUSTOMER-FILE.
+       01 CUSTOMER-RECORD       PIC X(33).
+
+       WORKING-STORAGE SECTION.
+       01 WS-CUST-ID            PIC X(5).
+       01 WS-CUST-FNAME         PIC X(10).
+       01 WS-CUST-LNAME         PIC X(10).
+       01 WS-BALANCE-INPUT      PIC X(8).
+       01 WS-BALANCE-FORMAT     PIC X(8).
+
+       PROCEDURE DIVISION.
+           DISPLAY "Enter Customer ID (5 digits): "
+           ACCEPT WS-CUST-ID
+           DISPLAY "Enter First Name (max 10 characters): "
+           ACCEPT WS-CUST-FNAME
+           DISPLAY "Enter Last Name (max 10 characters): "
+           ACCEPT WS-CUST-LNAME
+           DISPLAY "Enter Balance (less than 99999.99): "
+           ACCEPT WS-BALANCE-INPUT
+
+           MOVE FUNCTION NUMVAL-C(WS-BALANCE-INPUT) TO WS-BALANCE-FORMAT
+           MOVE SPACES TO CUSTOMER-RECORD
+           MOVE WS-CUST-ID TO CUSTOMER-RECORD(1:5)
+           MOVE WS-CUST-FNAME TO CUSTOMER-RECORD(6:10)
+           MOVE WS-CUST-LNAME TO CUSTOMER-RECORD(16:10)
+           MOVE WS-BALANCE-FORMAT TO CUSTOMER-RECORD(26:8)
+
+           OPEN EXTEND CUSTOMER-FILE
+           WRITE CUSTOMER-RECORD
+           CLOSE CUSTOMER-FILE
+
+           DISPLAY "Customer record added successfully!"
+           STOP RUN.
