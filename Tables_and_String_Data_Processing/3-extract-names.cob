@@ -3,63 +3,63 @@
 
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 WS-FIRST-NAME      PIC X(50).
-       01 WS-LAST-NAME       PIC X(50).
-       01 WS-TEMP-NAME       PIC X(50).
-       01 WS-WORDS.
-           05 WS-WORD OCCURS 10 TIMES PIC X(50).
+       01 WS-TRIMMED-NAME      PIC X(50).
+       01 WS-TOKEN-TABLE.
+          05 WS-TOKEN OCCURS 10 TIMES PIC X(20).
+       01 WS-INDEX             PIC 9(2).
+       01 WS-CHAR              PIC X.
+       01 WS-TOKEN-IDX         PIC 9(2).
+       01 WS-TOKEN-POS         PIC 9(2).
+       01 WS-LENGTH            PIC 9(3).
+       01 WS-IN-TOKEN          PIC X.
 
        LINKAGE SECTION.
-       01 LK-FULL-NAME       PIC X(50).
+       01 LK-FULL-NAME         PIC X(50).
 
        PROCEDURE DIVISION USING LK-FULL-NAME.
 
-           *> Trim spaces
-           MOVE FUNCTION TRIM(LK-FULL-NAME) TO WS-TEMP-NAME
+           MOVE SPACES TO WS-TRIMMED-NAME
 
-           *> Split into words (UNSTRING gère tous les mots d'un coup)
-           UNSTRING WS-TEMP-NAME
-               DELIMITED BY SPACE
-               INTO WS-WORD(1)
-                    WS-WORD(2)
-                    WS-WORD(3)
-                    WS-WORD(4)
-                    WS-WORD(5)
-                    WS-WORD(6)
-                    WS-WORD(7)
-                    WS-WORD(8)
-                    WS-WORD(9)
-                    WS-WORD(10)
-           END-UNSTRING
+           PERFORM VARYING WS-TOKEN-IDX FROM 1 BY 1 UNTIL WS-TOKEN-IDX > 10
+               MOVE SPACES TO WS-TOKEN(WS-TOKEN-IDX)
+           END-PERFORM
 
-           *> Trouve le dernier mot
-           IF WS-WORD(10) NOT = SPACES
-               MOVE WS-WORD(10) TO WS-LAST-NAME
-           ELSE IF WS-WORD(9) NOT = SPACES
-               MOVE WS-WORD(9) TO WS-LAST-NAME
-           ELSE IF WS-WORD(8) NOT = SPACES
-               MOVE WS-WORD(8) TO WS-LAST-NAME
-           ELSE IF WS-WORD(7) NOT = SPACES
-               MOVE WS-WORD(7) TO WS-LAST-NAME
-           ELSE IF WS-WORD(6) NOT = SPACES
-               MOVE WS-WORD(6) TO WS-LAST-NAME
-           ELSE IF WS-WORD(5) NOT = SPACES
-               MOVE WS-WORD(5) TO WS-LAST-NAME
-           ELSE IF WS-WORD(4) NOT = SPACES
-               MOVE WS-WORD(4) TO WS-LAST-NAME
-           ELSE IF WS-WORD(3) NOT = SPACES
-               MOVE WS-WORD(3) TO WS-LAST-NAME
-           ELSE IF WS-WORD(2) NOT = SPACES
-               MOVE WS-WORD(2) TO WS-LAST-NAME
-           ELSE
-               MOVE WS-WORD(1) TO WS-LAST-NAME
+           MOVE 1 TO WS-INDEX
+           MOVE 1 TO WS-TOKEN-IDX
+           MOVE 1 TO WS-TOKEN-POS
+           MOVE "N" TO WS-IN-TOKEN
+
+           MOVE FUNCTION TRIM(LK-FULL-NAME) TO WS-TRIMMED-NAME
+           MOVE FUNCTION LENGTH(WS-TRIMMED-NAME) TO WS-LENGTH
+
+           PERFORM VARYING WS-INDEX FROM 1 BY 1 UNTIL WS-INDEX > WS-LENGTH
+               MOVE WS-TRIMMED-NAME(WS-INDEX:1) TO WS-CHAR
+               IF WS-CHAR NOT = SPACE
+                   IF WS-IN-TOKEN = "N"
+                       MOVE "Y" TO WS-IN-TOKEN
+                       MOVE 1 TO WS-TOKEN-POS
+                       MOVE SPACES TO WS-TOKEN(WS-TOKEN-IDX)
+                   END-IF
+                   MOVE WS-CHAR TO WS-TOKEN(WS-TOKEN-IDX)(WS-TOKEN-POS:1)
+                   ADD 1 TO WS-TOKEN-POS
+               ELSE
+                   IF WS-IN-TOKEN = "Y"
+                       MOVE "N" TO WS-IN-TOKEN
+                       ADD 1 TO WS-TOKEN-IDX
+                   END-IF
+               END-IF
+           END-PERFORM
+
+           IF WS-IN-TOKEN = "Y"
+               ADD 1 TO WS-TOKEN-IDX
            END-IF
 
-           *> Premier mot = première case
-           MOVE WS-WORD(1) TO WS-FIRST-NAME
-
-           *> Display results
-           DISPLAY "First Name: " WS-FIRST-NAME
-           DISPLAY "Last Name: "  WS-LAST-NAME
+           IF WS-TOKEN-IDX = 2
+               DISPLAY "First Name: " WS-TOKEN(1)
+               DISPLAY "Last Name:  " WS-TOKEN(1)
+           ELSE
+               DISPLAY "First Name: " WS-TOKEN(1)
+               DISPLAY "Last Name:  " WS-TOKEN(WS-TOKEN-IDX - 1)
+           END-IF
 
            GOBACK.
