@@ -21,21 +21,20 @@
        WORKING-STORAGE SECTION.
        01 WS-FILE-STATUS      PIC XX.
        01 WS-ACCOUNT-ID       PIC X(5).
-
        PROCEDURE DIVISION.
+       BEGIN.
            DISPLAY "Enter account number to delete: "
            ACCEPT WS-ACCOUNT-ID
-           OPEN I-O CUSTOMER-FILE
            MOVE WS-ACCOUNT-ID TO CUST-ID
+           OPEN I-O CUSTOMER-FILE
            READ CUSTOMER-FILE
                INVALID KEY
                    DISPLAY "Account not found."
                    CLOSE CUSTOMER-FILE
                    STOP RUN
            END-READ
-           DELETE CUSTOMER-FILE
+           DELETE CUSTOMER-FILE RECORD
            DISPLAY "Account " WS-ACCOUNT-ID
            " has been successfully deleted."
-
            CLOSE CUSTOMER-FILE
            STOP RUN.
