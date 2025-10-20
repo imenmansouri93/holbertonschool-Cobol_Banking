@@ -1,12 +1,10 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. DETECT-DUPLICATES.
-
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT TRANS-FILE ASSIGN TO "transactions.idx"
                ORGANIZATION IS LINE SEQUENTIAL.
-
        DATA DIVISION.
        FILE SECTION.
        FD TRANS-FILE.
@@ -15,32 +13,28 @@
            05 TR-ACC       PIC X(9).
            05 TR-DATE      PIC X(8).
            05 TR-TYPE      PIC X(1).
-           05 TR-AMOUNT    PIC 9(10).
-
+           05 TR-AMOUNT    PIC 9(10).  *> Full 10 digits
        WORKING-STORAGE SECTION.
        01 EOF                PIC X VALUE 'N'.
        01 NUM-RECORDS        PIC 9(4) VALUE 0.
        01 I                  PIC 9(4).
        01 J                  PIC 9(4).
        01 NEXT-J             PIC 9(4).
+       01 DECIMAL-AMOUNT     PIC 9(7)V99.
        01 TEMP-AMOUNT        PIC 9(10).
-       01 DOLLARS            PIC 9(7) VALUE 0.
-       01 CENTS              PIC 99 VALUE 0.
-       01 DISPLAY-AMOUNT     PIC ZZZZZZZ9.99.
+       01 DOLLARS            PIC 9(7).
+       01 CENTS              PIC 99.
        01 TRANS-TABLE.
            05 TRANS-ENTRY OCCURS 100 TIMES.
                10 TE-USED     PIC X VALUE 'N'.
-               10 TE-ID       PIC X(7).
+               10 TE-ID       PIC X(6).
                10 TE-ACC      PIC X(9).
                10 TE-DATE     PIC X(8).
                10 TE-TYPE     PIC X(1).
                10 TE-AMOUNT   PIC 9(10).
-
        PROCEDURE DIVISION.
        MAIN-LOGIC.
            OPEN INPUT TRANS-FILE
-
-           *> Lecture des transactions
            PERFORM UNTIL EOF = 'Y'
                READ TRANS-FILE
                    AT END
@@ -55,12 +49,10 @@
                END-READ
            END-PERFORM
            CLOSE TRANS-FILE
-
-           *> Détection des doublons
            PERFORM VARYING I FROM 1 BY 1 UNTIL I > NUM-RECORDS
                IF TE-USED(I) = 'N'
                    COMPUTE NEXT-J = I + 1
-                   PERFORM VARYING J FROM NEXT-J BY 1 UNTIL J >
+                   PERFORM VARYING J FROM NEXT-J BY 1 UNTIL J > 
                    NUM-RECORDS
                        IF TE-USED(J) = 'N'
                           AND TE-ACC(I) = TE-ACC(J)
@@ -73,8 +65,6 @@
                    END-PERFORM
                END-IF
            END-PERFORM
-
-           *> Affichage des doublons au format 00001234.50
            DISPLAY "DUPLICATE TRANSACTIONS:"
            PERFORM VARYING I FROM 1 BY 1 UNTIL I > NUM-RECORDS
                IF TE-USED(I) = 'Y'
@@ -88,8 +78,7 @@
                            TE-DATE(I) " "
                            TE-TYPE(I) " "
                            DOLLARS "." CENTS
-                   MOVE 'N' TO TE-USED(I)
+                   MOVE 'N' TO TE-USED(I) *> Mark it as printed
                END-IF
            END-PERFORM
-
            STOP RUN.
