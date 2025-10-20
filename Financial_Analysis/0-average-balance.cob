@@ -48,7 +48,7 @@
            MOVE WS-TOTAL-BALANCE  TO WS-DISPLAY-TOTAL
            MOVE WS-AVERAGE        TO WS-DISPLAY-AVERAGE
 
-           DISPLAY "Total Customers: " WS-CUSTOMER-COUNT
+           DISPLAY "Total Customers:  " WS-CUSTOMER-COUNT
            DISPLAY "Total Balance:  " WS-DISPLAY-TOTAL
            DISPLAY "Average Balance:  " WS-DISPLAY-AVERAGE
 
