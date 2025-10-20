@@ -19,8 +19,11 @@
        01 WS-TOTAL-BALANCE       PIC 9(9)V99 VALUE 0.
        01 WS-CUSTOMER-COUNT      PIC 9(4)    VALUE 0.
        01 WS-AVERAGE             PIC 9(9)V99 VALUE 0.
-       01 WS-DISPLAY-TOTAL       PIC Z(9)9.99.
-       01 WS-DISPLAY-AVERAGE     PIC Z(9)9.99.
+
+       *> Champs d'affichage pour enlever zéros à gauche (montants)
+       01 WS-DISPLAY-TOTAL       PIC ZZ9(6).99.
+       01 WS-DISPLAY-AVERAGE     PIC ZZ9(5).99.
+
        01 EOF-FLAG               PIC X       VALUE 'N'.
 
        PROCEDURE DIVISION.
@@ -42,8 +45,8 @@
                    WS-TOTAL-BALANCE / WS-CUSTOMER-COUNT
            END-IF
 
-           MOVE WS-TOTAL-BALANCE TO WS-DISPLAY-TOTAL
-           MOVE WS-AVERAGE       TO WS-DISPLAY-AVERAGE
+           MOVE WS-TOTAL-BALANCE  TO WS-DISPLAY-TOTAL
+           MOVE WS-AVERAGE        TO WS-DISPLAY-AVERAGE
 
            DISPLAY "Total Customers: " WS-CUSTOMER-COUNT
            DISPLAY "Total Balance:  " WS-DISPLAY-TOTAL
