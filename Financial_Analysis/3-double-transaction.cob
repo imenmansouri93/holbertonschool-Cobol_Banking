@@ -11,11 +11,15 @@
        FILE SECTION.
        FD TRANS-FILE.
        01 TRANS-RECORD.
-           05 TR-ID        PIC X(6).
-           05 TR-ACC       PIC X(9).
-           05 TR-DATE      PIC X(8).
-           05 TR-TYPE      PIC X(1).
-           05 TR-AMOUNT    PIC 9(10).
+           05 TR-ID      PIC X(6).
+           05 FILLER     PIC X.       *> espace
+           05 TR-ACC     PIC X(9).
+           05 FILLER     PIC X.
+           05 TR-DATE    PIC X(8).
+           05 FILLER     PIC X.
+           05 TR-TYPE    PIC X(1).
+           05 FILLER     PIC X.
+           05 TR-AMOUNT  PIC 9(10).
 
        WORKING-STORAGE SECTION.
        01 EOF                PIC X VALUE 'N'.
@@ -40,7 +44,7 @@
        MAIN-LOGIC.
            OPEN INPUT TRANS-FILE
 
-           *> Load transactions in memory
+           *> Lecture des transactions
            PERFORM UNTIL EOF = 'Y'
                READ TRANS-FILE
                    AT END
@@ -56,7 +60,7 @@
            END-PERFORM
            CLOSE TRANS-FILE
 
-           *> Detect duplicate groups
+           *> Détection des doublons (même ACC, DATE, TYPE, AMOUNT)
            PERFORM VARYING I FROM 1 BY 1 UNTIL I > NUM-RECORDS
                IF TE-USED(I) = 'N'
                    COMPUTE NEXT-J = I + 1
@@ -74,22 +78,27 @@
                END-IF
            END-PERFORM
 
-           *> Display duplicates
+           *> Affichage des doublons avec montant formaté 0000500.00
            DISPLAY "DUPLICATE TRANSACTIONS:"
            PERFORM VARYING I FROM 1 BY 1 UNTIL I > NUM-RECORDS
                IF TE-USED(I) = 'Y'
+                   *> Conversion montant en dollars et cents
                    MOVE TE-AMOUNT(I) TO TEMP-AMOUNT
                    DIVIDE TEMP-AMOUNT BY 100
                        GIVING DOLLARS
                        REMAINDER CENTS
+
+                   *> Construction du format exact 0000000.00
                    MOVE DOLLARS TO DISPLAY-AMOUNT (1:7)
                    MOVE CENTS   TO DISPLAY-AMOUNT (8:2)
+
                    DISPLAY "DUPLICATE: "
                            TE-ID(I) " "
                            TE-ACC(I) " "
                            TE-DATE(I) " "
                            TE-TYPE(I) " "
                            DISPLAY-AMOUNT
+
                    MOVE 'N' TO TE-USED(I)
                END-IF
            END-PERFORM
