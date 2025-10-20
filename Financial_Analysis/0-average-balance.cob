@@ -1,6 +1,5 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. AVERAGEBALANCE.
-
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
@@ -16,13 +15,13 @@
            05 BALANCE-AMOUNT     PIC 9(5)V99.
 
        WORKING-STORAGE SECTION.
-       01 WS-TOTAL-BALANCE       PIC 9(9)V99 VALUE 0.
+       01 WS-TOTAL-BALANCE       PIC 9(7)V99 VALUE 0.
        01 WS-CUSTOMER-COUNT      PIC 9(4)    VALUE 0.
-       01 WS-AVERAGE             PIC 9(9)V99 VALUE 0.
+       01 WS-AVERAGE             PIC 9(5)V99 VALUE 0.
 
        *> Champs d'affichage pour enlever zéros à gauche (montants)
-       01 WS-DISPLAY-TOTAL       PIC ZZ9(6).99.
-       01 WS-DISPLAY-AVERAGE     PIC ZZ9(5).99.
+       01 WS-DISPLAY-TOTAL       PIC Z(6)9.99.
+       01 WS-DISPLAY-AVERAGE     PIC Z(5)9.99.
 
        01 EOF-FLAG               PIC X       VALUE 'N'.
 
