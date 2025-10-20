@@ -11,15 +11,11 @@
        FILE SECTION.
        FD TRANS-FILE.
        01 TRANS-RECORD.
-           05 TR-ID      PIC X(6).
-           05 FILLER     PIC X.       *> espace
-           05 TR-ACC     PIC X(9).
-           05 FILLER     PIC X.
-           05 TR-DATE    PIC X(8).
-           05 FILLER     PIC X.
-           05 TR-TYPE    PIC X(1).
-           05 FILLER     PIC X.
-           05 TR-AMOUNT  PIC 9(10).
+           05 TR-ID        PIC X(6).
+           05 TR-ACC       PIC X(9).
+           05 TR-DATE      PIC X(8).
+           05 TR-TYPE      PIC X(1).
+           05 TR-AMOUNT    PIC 9(10).
 
        WORKING-STORAGE SECTION.
        01 EOF                PIC X VALUE 'N'.
@@ -28,9 +24,9 @@
        01 J                  PIC 9(4).
        01 NEXT-J             PIC 9(4).
        01 TEMP-AMOUNT        PIC 9(10).
-       01 DOLLARS            PIC 9(7).
-       01 CENTS              PIC 99.
-       01 DISPLAY-AMOUNT     PIC 9(7).99.
+       01 DOLLARS            PIC 9(7) VALUE 0.
+       01 CENTS              PIC 99 VALUE 0.
+       01 DISPLAY-AMOUNT     PIC Z(7).99.
        01 TRANS-TABLE.
            05 TRANS-ENTRY OCCURS 100 TIMES.
                10 TE-USED     PIC X VALUE 'N'.
@@ -44,7 +40,7 @@
        MAIN-LOGIC.
            OPEN INPUT TRANS-FILE
 
-           *> Lecture des transactions
+           *> Lire toutes les transactions
            PERFORM UNTIL EOF = 'Y'
                READ TRANS-FILE
                    AT END
@@ -78,7 +74,7 @@
                END-IF
            END-PERFORM
 
-           *> Affichage des doublons avec montant formaté 0000500.00
+           *> Affichage des doublons avec format exact 0000500.00
            DISPLAY "DUPLICATE TRANSACTIONS:"
            PERFORM VARYING I FROM 1 BY 1 UNTIL I > NUM-RECORDS
                IF TE-USED(I) = 'Y'
@@ -88,16 +84,12 @@
                        GIVING DOLLARS
                        REMAINDER CENTS
 
-                   *> Construction du format exact 0000000.00
-                   MOVE DOLLARS TO DISPLAY-AMOUNT (1:7)
-                   MOVE CENTS   TO DISPLAY-AMOUNT (8:2)
+                   *> Format exact 00001234.56
+                   MOVE DOLLARS TO DISPLAY-AMOUNT(1:7)
+                   MOVE CENTS   TO DISPLAY-AMOUNT(8:2)
 
-                   DISPLAY "DUPLICATE: "
-                           TE-ID(I) " "
-                           TE-ACC(I) " "
-                           TE-DATE(I) " "
-                           TE-TYPE(I) " "
-                           DISPLAY-AMOUNT
+                   DISPLAY "DUPLICATE: " TE-ID(I) " " TE-ACC(I) " "
+                           TE-DATE(I) " " TE-TYPE(I) " " DISPLAY-AMOUNT
 
                    MOVE 'N' TO TE-USED(I)
                END-IF
