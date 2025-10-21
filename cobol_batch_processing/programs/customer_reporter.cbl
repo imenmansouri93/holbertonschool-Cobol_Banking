@@ -25,12 +25,15 @@
 
        PROCEDURE DIVISION.
        BEGIN.
-           DISPLAY "CUSTOMER-REPORTER: Starting customer report generation..."
-           DISPLAY "CUSTOMER-REPORTER: =================================="
+           DISPLAY "CUSTOMER-REPORTER" 
+           ": Starting customer report generation..."
+           DISPLAY "CUSTOMER-REPORTER"
+           ": ================================"
            OPEN INPUT CUST-FILE
            PERFORM UNTIL WS-EOF = 'Y'
                READ CUST-FILE
-                   AT END MOVE 'Y' TO WS-EOF
+                   AT END
+                       MOVE 'Y' TO WS-EOF
                    NOT AT END
                        ADD 1 TO WS-COUNT
                        MOVE CUST-RECORD TO WS-CUST-FIELDS
@@ -38,12 +41,16 @@
                        DISPLAY "  ID: " WS-CUST-ID
                        DISPLAY "  Name: " WS-CUST-NAME
                        DISPLAY "  Address: " WS-CUST-ADDR
-                       DISPLAY "  ----------------------------------"
+                       DISPLAY "  ------------------------------"
                END-READ
            END-PERFORM
            CLOSE CUST-FILE
-           DISPLAY "CUSTOMER-REPORTER: =================================="
-           DISPLAY "CUSTOMER-REPORTER: Report generation completed"
-           DISPLAY "CUSTOMER-REPORTER: Total customers processed: " WS-COUNT
-           DISPLAY "CUSTOMER-REPORTER: Report ready for management review"
+           DISPLAY "CUSTOMER-REPORTER"
+           ": ================================"
+           DISPLAY "CUSTOMER-REPORTER"
+           ": Report generation completed"
+           DISPLAY "CUSTOMER-REPORTER"
+           ": Total customers processed: " WS-COUNT
+           DISPLAY "CUSTOMER-REPORTER"
+           ": Report ready for management review"
            STOP RUN.
