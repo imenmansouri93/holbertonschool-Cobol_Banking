@@ -1,62 +1,70 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. OVERFLOW-HANDLING.
+       PROGRAM-ID. OVERFLOW-HANDLING-TASK1.
 
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT EMPLOYEES ASSIGN TO "EMPLOYEES.DAT"
-               ORGANIZATION IS SEQUENTIAL
-               ACCESS MODE IS SEQUENTIAL
-               FILE STATUS IS WS-FILE-STATUS.
+           SELECT EMPLOYEE-FILE ASSIGN TO "EMPLOYEES.DAT"
+               ORGANIZATION IS LINE SEQUENTIAL
+               FILE STATUS IS FILE-STATUS.
 
        DATA DIVISION.
        FILE SECTION.
-       FD  EMPLOYEES.
-       01  EMPLOYEE-RECORD.
-           05  EMP-ID             PIC 9(5).
-           05  EMP-NAME           PIC X(20).
-           05  EMP-SALARY         PIC 9(5)V99.
+       FD EMPLOYEE-FILE.
+       01 EMPLOYEE-RECORD.
+           05 EMP-ID-TEXT       PIC X(5).
+           05 EMP-NAME          PIC X(20).
+           05 EMP-SALARY-TEXT   PIC X(8).
 
        WORKING-STORAGE SECTION.
-       77  WS-FILE-STATUS         PIC XX.
-       77  WS-SEARCH-ID           PIC 9(5).
-       77  WS-BONUS               PIC 9(5)V99.
-       77  WS-FOUND               PIC X VALUE 'N'.
-       77  WS-NEW-SALARY          PIC 9(5)V99.
+       01 WS-INPUT-ID-TEXT       PIC X(5).
+       01 WS-INPUT-BONUS-TEXT    PIC X(10).
+       01 WS-FOUND-FLAG          PIC X VALUE 'N'.
+       01 WS-END-FLAG            PIC X VALUE 'N'.
+       01 FILE-STATUS            PIC XX.
+       01 WS-SALARY-NUM          PIC 9(5)V99.
+       01 WS-BONUS-NUM           PIC 9(5)V99.
+       01 WS-NEW-SALARY-DSP      PIC Z(5)9.99.
 
        PROCEDURE DIVISION.
-       MAIN-PARA.
-           DISPLAY "Enter Employee ID: " WITH NO ADVANCING
-           ACCEPT WS-SEARCH-ID
-           DISPLAY "Enter Bonus Amount: " WITH NO ADVANCING
-           ACCEPT WS-BONUS
+       MAIN-LOGIC.
+           DISPLAY "Enter Employee ID (5 digits): "
+           ACCEPT WS-INPUT-ID-TEXT
+           DISPLAY "Enter Bonus Amount (e.g. 500.00): "
+           ACCEPT WS-INPUT-BONUS-TEXT
 
-           OPEN INPUT EMPLOYEES
-           PERFORM UNTIL WS-FILE-STATUS = "10"
-               READ EMPLOYEES
+           COMPUTE WS-BONUS-NUM = FUNCTION NUMVAL(WS-INPUT-BONUS-TEXT)
+
+           OPEN INPUT EMPLOYEE-FILE
+
+           PERFORM UNTIL WS-FOUND-FLAG = 'Y' OR WS-END-FLAG = 'Y'
+               READ EMPLOYEE-FILE
                    AT END
-                       MOVE "10" TO WS-FILE-STATUS
+                       MOVE 'Y' TO WS-END-FLAG
                    NOT AT END
-                       IF EMP-ID = WS-SEARCH-ID
-                           MOVE "Y" TO WS-FOUND
-                           PERFORM UPDATE-SALARY
-                           MOVE "10" TO WS-FILE-STATUS
+                       IF EMP-ID-TEXT = WS-INPUT-ID-TEXT
+                           MOVE 'Y' TO WS-FOUND-FLAG
+                           COMPUTE WS-SALARY-NUM = FUNCTION
+-                              NUMVAL(EMP-SALARY-TEXT)
                        END-IF
                END-READ
            END-PERFORM
-           CLOSE EMPLOYEES
 
-           IF WS-FOUND NOT = "Y"
+           IF WS-FOUND-FLAG = 'Y'
+               COMPUTE WS-SALARY-NUM = WS-SALARY-NUM + WS-BONUS-NUM
+                   ON SIZE ERROR
+                       DISPLAY "Error: Bonus too large."
+                       MOVE 0 TO WS-SALARY-NUM
+               END-COMPUTE
+
+               IF WS-SALARY-NUM > 0
+                   MOVE WS-SALARY-NUM TO WS-NEW-SALARY-DSP
+                   DISPLAY "Updated Salary for " EMP-NAME
+                   DISPLAY "    $ " WS-NEW-SALARY-DSP
+               END-IF
+           ELSE
                DISPLAY "Error: Employee ID not found."
            END-IF
-           STOP RUN.
 
-       UPDATE-SALARY.
-           COMPUTE WS-NEW-SALARY = EMP-SALARY + WS-BONUS
-               ON SIZE ERROR
-                   DISPLAY "Error: Bonus too large. Salary update failed "
-      -            "due to overflow."
-               NOT ON SIZE ERROR
-                   DISPLAY "Updated Salary for " EMP-NAME ": "
-      -            "$" WS-NEW-SALARY
-           END-COMPUTE.
+           CLOSE EMPLOYEE-FILE
+           STOP RUN.
