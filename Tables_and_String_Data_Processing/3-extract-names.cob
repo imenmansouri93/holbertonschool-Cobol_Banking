@@ -50,7 +50,7 @@
 
            *> Display results (aligned output)
            DISPLAY "First Name: " WS-FIRST-NAME
-           DISPLAY "Last Name: " WS-LAST-NAME
+           DISPLAY "Last Name:  " WS-LAST-NAME
            DISPLAY SPACES
 
            GOBACK.
