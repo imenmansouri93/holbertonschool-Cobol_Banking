@@ -29,9 +29,11 @@
 
        PROCEDURE DIVISION.
        MAIN-LOGIC.
-           DISPLAY "Enter Employee ID: " WITH NO ADVANCING
+           DISPLAY "Enter Employee ID: "
            ACCEPT WS-INPUT-ID
-           DISPLAY "[DEBUG] Searching for Employee ID: " WS-INPUT-ID
+
+           DISPLAY "[DEBUG] Searching for Employee ID: "
+           DISPLAY WS-INPUT-ID
 
            OPEN INPUT EMPLOYEE-FILE
 
@@ -40,43 +42,37 @@
                    AT END
                        MOVE 'Y' TO WS-END-FLAG
                    NOT AT END
-                       IF FUNCTION TRIM(EMP-ID-TEXT) =
-                          FUNCTION TRIM(WS-INPUT-ID)
+                       IF EMP-ID-TEXT = WS-INPUT-ID
                            MOVE 'Y' TO WS-FOUND-FLAG
-                           COMPUTE WS-SALARY-NUM =
-                              FUNCTION NUMVAL(EMP-SALARY-TEXT)
+
+                           COMPUTE WS-SALARY-NUM = 
+                               FUNCTION NUMVAL(EMP-SALARY-TEXT)
                            MOVE WS-SALARY-NUM TO WS-NEW-SALARY-DSP
+
                            DISPLAY "[DEBUG] Found: "
-                               FUNCTION TRIM(EMP-NAME)
-                               " with salary "
-                               FUNCTION TRIM(WS-NEW-SALARY-DSP)
+                           DISPLAY EMP-NAME " with salary "
+                                   WS-NEW-SALARY-DSP
 
                            DISPLAY "Enter Bonus Amount: "
-                               WITH NO ADVANCING
                            ACCEPT WS-INPUT-BONUS-TEXT
 
                            DISPLAY "[DEBUG] Bonus entered: "
-                               WS-INPUT-BONUS-TEXT
+                           DISPLAY WS-INPUT-BONUS-TEXT
 
-                           COMPUTE WS-BONUS-NUM =
-                              FUNCTION NUMVAL(WS-INPUT-BONUS-TEXT)
-
-                           COMPUTE WS-NEW-SALARY =
-                              WS-SALARY-NUM + WS-BONUS-NUM
-
+                           COMPUTE WS-BONUS-NUM = 
+                               FUNCTION NUMVAL(WS-INPUT-BONUS-TEXT)
+                           COMPUTE WS-NEW-SALARY = WS-SALARY-NUM 
+                               + WS-BONUS-NUM
                            MOVE WS-NEW-SALARY TO WS-NEW-SALARY-DSP
 
                            DISPLAY "[DEBUG] New calculated salary: "
-                               FUNCTION TRIM(WS-NEW-SALARY-DSP)
+                           DISPLAY WS-NEW-SALARY-DSP
                        END-IF
                END-READ
            END-PERFORM
 
            IF WS-FOUND-FLAG = 'Y'
-               DISPLAY "Updated Salary for "
-                   FUNCTION TRIM(EMP-NAME)
-                   ": "
-                   FUNCTION TRIM(WS-NEW-SALARY-DSP)
+               DISPLAY "Updated Salary for " EMP-NAME ": " WS-NEW-SALARY-DSP
            ELSE
                DISPLAY "Error: Employee ID not found."
            END-IF
