@@ -5,38 +5,58 @@
        01 WS-FULL-NAME    PIC X(50).
        01 WS-FIRST-NAME   PIC X(20).
        01 WS-LAST-NAME    PIC X(20).
-       01 WS-REST         PIC X(50).
+       01 WS-TOKEN        PIC X(20) OCCURS 10 TIMES.
+       01 WS-TOKEN-COUNT  PIC 9(2).
+       01 WS-INDEX        PIC 9(2).
 
-       LINKAGE SECTION.
-       01 LK-FULL-NAME    PIC X(50).
+       PROCEDURE DIVISION.
 
-       PROCEDURE DIVISION USING LK-FULL-NAME.
-       *> Copy full name (with spaces) to working storage
-           MOVE LK-FULL-NAME TO WS-FULL-NAME
+       *> Test case 1
+           MOVE FUNCTION TRIM("John Doe") TO WS-FULL-NAME
+           PERFORM TOKENIZE-AND-DISPLAY
 
-       *> Trim leading and trailing spaces for tokenizing
-           MOVE FUNCTION TRIM(WS-FULL-NAME) TO WS-REST
+       *> Test case 2
+           MOVE FUNCTION TRIM("Mary Ann Smith") TO WS-FULL-NAME
+           PERFORM TOKENIZE-AND-DISPLAY
 
-       *> Get first word
-           UNSTRING WS-REST
-               DELIMITED BY SPACE
-               INTO WS-FIRST-NAME WS-REST
+       *> Test case 3
+           MOVE FUNCTION TRIM("Cher") TO WS-FULL-NAME
+           PERFORM TOKENIZE-AND-DISPLAY
+
+           STOP RUN.
+
+       *>------------------------------------------------------------------
+       TOKENIZE-AND-DISPLAY.
+           *> Initialize token table
+           MOVE 0 TO WS-TOKEN-COUNT
+           PERFORM VARYING WS-INDEX FROM 1 BY 1 UNTIL WS-INDEX > 10
+               MOVE SPACES TO WS-TOKEN(WS-INDEX)
+           END-PERFORM
+
+           *> Tokenize using UNSTRING
+           UNSTRING WS-FULL-NAME DELIMITED BY SPACE
+               INTO WS-TOKEN(1) WS-TOKEN(2) WS-TOKEN(3)
            END-UNSTRING
 
-       *> Determine last name
-           IF FUNCTION LENGTH(FUNCTION TRIM(WS-REST)) = 0
-               *> Only one word -> last name = first name
+           *> Count tokens
+           MOVE 0 TO WS-TOKEN-COUNT
+           PERFORM VARYING WS-INDEX FROM 1 BY 1 UNTIL WS-INDEX > 10
+               IF WS-TOKEN(WS-INDEX) NOT = SPACES
+                   ADD 1 TO WS-TOKEN-COUNT
+               END-IF
+           END-PERFORM
+
+           *> First and last name
+           MOVE WS-TOKEN(1) TO WS-FIRST-NAME
+           IF WS-TOKEN-COUNT = 1
                MOVE WS-FIRST-NAME TO WS-LAST-NAME
            ELSE
-               *> Otherwise, last token = last word
-               UNSTRING WS-REST
-                   DELIMITED BY ALL SPACES
-                   INTO WS-LAST-NAME
-               END-UNSTRING
+               MOVE WS-TOKEN(WS-TOKEN-COUNT) TO WS-LAST-NAME
            END-IF
 
-       *> Display results with spaces preserved
+           *> Display results
            DISPLAY "First Name: " WS-FIRST-NAME
            DISPLAY "Last Name:  " WS-LAST-NAME
+           DISPLAY SPACES
 
-           GOBACK.
+           EXIT.
