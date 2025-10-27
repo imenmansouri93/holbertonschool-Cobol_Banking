@@ -1,4 +1,4 @@
- IDENTIFICATION DIVISION.
+       IDENTIFICATION DIVISION.
        PROGRAM-ID. FILECOPY.
 
        ENVIRONMENT DIVISION.
@@ -44,3 +44,4 @@
            DISPLAY "FILE-COPY: Processing completed"
            DISPLAY "FILE-COPY: Records processed: " WS-COUNT
            STOP RUN.
+           
