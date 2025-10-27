@@ -56,7 +56,7 @@
 
            *> Display results
            DISPLAY "First Name: " WS-FIRST-NAME
-           DISPLAY "Last Name:  " WS-LAST-NAME
+           DISPLAY "Last Name: " WS-LAST-NAME
            DISPLAY SPACES
 
            EXIT.
