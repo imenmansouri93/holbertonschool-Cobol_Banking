@@ -8,7 +8,7 @@
        01  I                     PIC 99.
        01  CHAR                  PIC X.
        01  INVALID-FLAG          PIC X VALUE 'N'.
-       01  INVALID-REASON        PIC X(40).
+       01  INVALID-REASON        PIC X(50).
 
        PROCEDURE DIVISION.
        MAIN-PARA.
@@ -36,8 +36,10 @@
                END-IF
                IF CHAR < '0' OR CHAR > '9'
                    MOVE 'Y' TO INVALID-FLAG
-                   MOVE "Invalid character detected: Non-numeric ID"
-                        TO INVALID-REASON
+                   STRING "Invalid character detected: Non-numeric ID"
+                          DELIMITED BY SIZE
+                          INTO INVALID-REASON
+                   END-STRING
                    EXIT PERFORM
                END-IF
            END-PERFORM
@@ -59,8 +61,11 @@
                ELSE
                    IF CHAR = "'" OR CHAR = ";" OR CHAR = "-"
                        MOVE 'Y' TO INVALID-FLAG
-                       MOVE "Invalid character detected: '"
-                            TO INVALID-REASON
+                       STRING "Invalid character detected: "
+                              DELIMITED BY SIZE
+                              CHAR DELIMITED BY SIZE
+                              INTO INVALID-REASON
+                       END-STRING
                        EXIT PERFORM
                    ELSE
                        IF (CHAR < 'A' OR (CHAR > 'Z' AND CHAR < 'a')
