@@ -4,9 +4,9 @@
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 WS-MORE            PIC X VALUE "Y".
-       01 WS-DISC-PRICE      PIC 9(4)V99 VALUE 0.
-       01 WS-TOTAL           PIC 9(6)V99 VALUE 0.
-       01 WS-DISP-TOTAL      PIC ZZZ9.99.   *> Ajusté pour 3 espaces avant le nombre
+       01 WS-DISC-PRICE      PIC 9(5)V99 VALUE 0.
+       01 WS-TOTAL           PIC 9(7)V99 VALUE 0.
+       01 WS-DISP-TOTAL      PIC ZZZZZZ9.99.   *> Ajusté pour 3 espaces avant le nombre
 
        PROCEDURE DIVISION.
        MAIN-LOGIC.
