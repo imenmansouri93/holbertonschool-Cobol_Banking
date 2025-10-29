@@ -10,9 +10,9 @@
        PROCEDURE DIVISION USING LNK-PRICE, LNK-CODE, LNK-DISC-PRICE.
            EVALUATE LNK-CODE
                WHEN 'A' 
-                   COMPUTE LNK-DISC-PRICE = LNK-PRICE * 0.9
+                   COMPUTE LNK-DISC-PRICE = LNK-PRICE * 0.90
                WHEN 'B'
-                   COMPUTE LNK-DISC-PRICE = LNK-PRICE * 0.8
+                   COMPUTE LNK-DISC-PRICE = LNK-PRICE * 0.80
                WHEN OTHER
                    MOVE LNK-PRICE TO LNK-DISC-PRICE
            END-EVALUATE
