@@ -11,7 +11,7 @@
        01 WS-INDEX-STR   PIC 9(3).
 
        PROCEDURE DIVISION.
-       BEGIN
+       BEGIN.
            PERFORM VARYING WS-INDEX FROM 1 BY 1 UNTIL WS-INDEX > 100
                MOVE WS-INDEX TO WS-INDEX-STR
                DISPLAY "Enter float #" WS-INDEX-STR ": " WITH NO ADVANCING
