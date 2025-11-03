@@ -26,7 +26,7 @@
            MOVE 0 TO COUNT-DIGITS
            MOVE "Y" TO IS-VALID
 
-           *> Extraire uniquement les chiffres (maximum 8)
+           *> Extraire uniquement les chiffres (max 8)
            PERFORM VARYING POS-IN FROM 1 BY 1 UNTIL POS-IN > 20
                MOVE RAW-DATE(POS-IN:1) TO CHR
                IF CHR >= "0" AND CHR <= "9"
@@ -47,11 +47,21 @@
 
            *> Format si valide
            IF IS-VALID = "Y"
+               MOVE CLEANED-DATE(5:2) TO MM
+               MOVE CLEANED-DATE(7:2) TO DD
                MOVE CLEANED-DATE(1:4) TO YYYY
-               MOVE CLEANED-DATE(7:2) TO MM
-               MOVE CLEANED-DATE(5:2) TO DD
 
-               *> Construire le format MM/DD/YYYY
+               *> Validation mois et jour
+               IF MM < 1 OR MM > 12
+                   MOVE "N" TO IS-VALID
+               END-IF
+               IF DD < 1 OR DD > 31
+                   MOVE "N" TO IS-VALID
+               END-IF
+           END-IF
+
+           *> Output result
+           IF IS-VALID = "Y"
                STRING
                    MM DELIMITED BY SIZE
                    "/" DELIMITED BY SIZE
@@ -60,7 +70,6 @@
                    YYYY DELIMITED BY SIZE
                    INTO FORMATTED-DATE
                END-STRING
-
                DISPLAY "Formatted Date: " FORMATTED-DATE
            ELSE
                DISPLAY "Invalid date: " RAW-DATE
