@@ -3,52 +3,56 @@
 
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 WS-ORIGINAL-DATE        PIC X(20).
-       01 WS-CLEAN-DATE           PIC X(8) VALUE SPACES.
-       01 WS-CHAR                 PIC X(1).
-       01 WS-INDEX                PIC 9(2) VALUE 1.
-       01 WS-POS                  PIC 9(2) VALUE 1.
-       01 WS-LENGTH               PIC 9(2) VALUE 0.
-       01 WS-FORMATTED-DATE       PIC X(10).
+       01 CLEANED-DATE       PIC X(8) VALUE SPACES.
+       01 CHR                PIC X.
+       01 POS-IN             PIC 9(2) VALUE 1.
+       01 POS-OUT            PIC 9(2) VALUE 1.
+       01 COUNT-DIGITS       PIC 9 VALUE 0.
+       01 YYYY               PIC 9(4).
+       01 MM                 PIC 9(2).
+       01 DD                 PIC 9(2).
+       01 FORMATTED-DATE     PIC X(10).
 
        LINKAGE SECTION.
-       01 LK-DATE                 PIC X(20).
+       01 RAW-DATE           PIC X(20).
 
-       PROCEDURE DIVISION USING LK-DATE.
-
-           *> Stocker l'input original
-           MOVE LK-DATE TO WS-ORIGINAL-DATE
-           MOVE FUNCTION LENGTH(FUNCTION TRIM(WS-ORIGINAL-DATE))
-                TO WS-LENGTH
-
-           MOVE SPACES TO WS-CLEAN-DATE
-           MOVE 1 TO WS-POS
+       PROCEDURE DIVISION USING RAW-DATE.
 
            *> Extraire uniquement les chiffres
-           PERFORM VARYING WS-INDEX FROM 1 BY 1
-                   UNTIL WS-INDEX > WS-LENGTH
-               MOVE WS-ORIGINAL-DATE(WS-INDEX:1) TO WS-CHAR
-               IF WS-CHAR NUMERIC
-                   IF WS-POS <= 8
-                       MOVE WS-CHAR TO WS-CLEAN-DATE(WS-POS:1)
-                       ADD 1 TO WS-POS
+           MOVE SPACES TO CLEANED-DATE
+           MOVE 1 TO POS-IN
+           MOVE 1 TO POS-OUT
+           MOVE 0 TO COUNT-DIGITS
+
+           PERFORM VARYING POS-IN FROM 1 BY 1 UNTIL POS-IN > 20
+               MOVE RAW-DATE(POS-IN:1) TO CHR
+               IF CHR >= "0" AND CHR <= "9"
+                   IF POS-OUT <= 8
+                       MOVE CHR TO CLEANED-DATE(POS-OUT:1)
+                       ADD 1 TO POS-OUT
+                       ADD 1 TO COUNT-DIGITS
                    END-IF
                END-IF
            END-PERFORM
 
            *> Vérifier que l'on a exactement 8 chiffres
-           IF WS-POS = 9
-               *> Construire le format MM/DD/YYYY
-               MOVE SPACES TO WS-FORMATTED-DATE
-               MOVE WS-CLEAN-DATE(5:2) TO WS-FORMATTED-DATE(1:2)  *> Mois
-               MOVE "/" TO WS-FORMATTED-DATE(3:1)
-               MOVE WS-CLEAN-DATE(7:2) TO WS-FORMATTED-DATE(4:2)  *> Jour
-               MOVE "/" TO WS-FORMATTED-DATE(6:1)
-               MOVE WS-CLEAN-DATE(1:4) TO WS-FORMATTED-DATE(7:4)  *> Année
+           IF COUNT-DIGITS = 8
+               MOVE CLEANED-DATE(7:2) TO DD
+               MOVE CLEANED-DATE(5:2) TO MM
+               MOVE CLEANED-DATE(1:4) TO YYYY
 
-               DISPLAY "Formatted Date: " WS-FORMATTED-DATE
+               STRING
+                   DD DELIMITED BY SIZE
+                   "/" DELIMITED BY SIZE
+                   MM DELIMITED BY SIZE
+                   "/" DELIMITED BY SIZE
+                   YYYY DELIMITED BY SIZE
+                   INTO FORMATTED-DATE
+               END-STRING
+
+               DISPLAY "Formatted Date: " FORMATTED-DATE
            ELSE
-               DISPLAY "Invalid date: " WS-ORIGINAL-DATE
+               DISPLAY "Invalid date: " RAW-DATE
            END-IF
 
            GOBACK.
