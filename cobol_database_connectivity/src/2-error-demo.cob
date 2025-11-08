@@ -1,45 +1,48 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. 2-ERROR-DEMO.
-
-       ENVIRONMENT DIVISION.
+       PROGRAM-ID. error-demo.
 
        DATA DIVISION.
        WORKING-STORAGE SECTION.
 
        COPY "dbapi.cpy".
 
-       01 CONN-LIT      PIC X(256) VALUE 'user=postgres dbname=schooldb password=postgres'.
-       01 SQL-LIT       PIC X(200) VALUE 'SELECT nope FROM accounts;'.
-       01 L             PIC S9(4) COMP.
+       01  CONN-LIT PIC X(256)
+           VALUE "host=localhost dbname=schooldb user=postgres password=postgres".
+       01  L        PIC 9(4) COMP VALUE 0.
 
        PROCEDURE DIVISION.
-MAIN-PROCEDURE.
+       MAIN-PROCEDURE.
 
-       *> --- Préparer la chaîne de connexion ---
-       MOVE SPACES TO DB-CONNSTR.
-       MOVE FUNCTION TRIM(CONN-LIT)
-           TO DB-CONNSTR(1:FUNCTION LENGTH(FUNCTION TRIM(CONN-LIT))).
-       MOVE X"00"
-           TO DB-CONNSTR(FUNCTION LENGTH(FUNCTION TRIM(CONN-LIT)) + 1:1).
+           *> --- Préparer la chaîne de connexion ---
+           MOVE SPACES TO DB-CONNSTR.
+           COMPUTE L = FUNCTION LENGTH(FUNCTION TRIM(CONN-LIT)).
+           MOVE CONN-LIT(1:L) TO DB-CONNSTR(1:L).
+           MOVE X"00" TO DB-CONNSTR(L + 1:1).
 
-       *> --- Connexion à la DB ---
-       CALL 'DB_CONNECT' USING DB-CONNSTR RETURNING DBH.
-       IF DBH = NULL-PTR THEN
-           DISPLAY "Connection failed."
-           GOBACK
-       END-IF.
+           *> --- Connexion à la DB ---
+           CALL STATIC "DB_CONNECT" USING DB-CONNSTR RETURNING DBH.
+           IF DBH = NULL-PTR THEN
+               DISPLAY "ERROR: Connection failed."
+               STOP RUN
+           END-IF.
 
-       *> --- Exécution de la requête invalide ---
-       CALL 'DB_QUERY' USING BY VALUE DBH, BY REFERENCE SQL-LIT RETURNING STMT.
+           *> --- Exécution de la requête invalide ---
+           MOVE SPACES TO SQL-COMMAND.
+           STRING "SELECT nope FROM accounts"
+               DELIMITED BY SIZE
+               INTO SQL-COMMAND.
 
-       *> --- Vérification des erreurs ---
-       IF STMT = NULL-PTR THEN
-           DISPLAY "DBQUERY failed: ERROR: column ""nope"" does not exist"
-           DISPLAY "ERROR: Query failed : 'SELECT nope FROM accounts;'"
-       END-IF.
+           CALL STATIC "DB_QUERY"
+               USING BY VALUE DBH, BY REFERENCE SQL-COMMAND
+               RETURNING STMT.
 
-       *> --- Déconnexion ---
-       CALL 'DB_DISCONNECT' USING BY VALUE DBH RETURNING RC.
+           *> --- Vérification des erreurs ---
+           IF STMT = NULL-PTR THEN
+               DISPLAY "DBQUERY failed: ERROR: column ""nope"" does not exist"
+           END-IF.
 
-       GOBACK.
-       END PROGRAM 2-ERROR-DEMO.
+           *> --- Déconnexion ---
+           CALL STATIC "DB_DISCONNECT" USING BY VALUE DBH RETURNING RC.
+
+           GOBACK.
+           STOP RUN.
