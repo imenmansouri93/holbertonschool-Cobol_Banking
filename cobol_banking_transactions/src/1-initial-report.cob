@@ -1,5 +1,7 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. initial-report.
+       PROGRAM-ID. INITIAL-REPORT.
+
+       ENVIRONMENT DIVISION.
 
        DATA DIVISION.
        WORKING-STORAGE SECTION.
@@ -7,31 +9,40 @@
 
        01 CONN-LIT PIC X(200)
            VALUE "host=localhost dbname=schooldb user=postgres password=postgres".
-       01 SQL-LIT PIC X(300)
-           VALUE "SELECT c.name, a.balance FROM customers c "
+       01 SQL-LIT PIC X(512)
+           VALUE "SELECT c.name, a.balance "
+                 & "FROM customers c "
                  & "JOIN accounts a ON c.id = a.customer_id "
                  & "ORDER BY c.id".
-       01 L PIC 9(4) VALUE 0.
+       01 L        PIC 9(4) VALUE 0.
+       01 SQL-LEN  PIC 9(4) VALUE 0.
 
        PROCEDURE DIVISION.
        MAIN-PROCEDURE.
+
+*> Step 1: Prepare connection string
            MOVE SPACES TO DB-CONNSTR
            COMPUTE L = FUNCTION LENGTH(FUNCTION TRIM(CONN-LIT))
            MOVE CONN-LIT(1:L) TO DB-CONNSTR(1:L)
            MOVE X"00" TO DB-CONNSTR(L + 1:1)
 
+*> Step 2: Connect to DB
            CALL STATIC "DB_CONNECT" USING DB-CONNSTR RETURNING DBH
            IF DBH = NULL-PTR THEN
                DISPLAY "Connection failed! Stopping program."
                STOP RUN
            END-IF
 
+*> Step 3: Prepare SQL command
            MOVE SPACES TO SQL-COMMAND
-           COMPUTE L = FUNCTION LENGTH(FUNCTION TRIM(SQL-LIT))
-           MOVE SQL-LIT(1:L) TO SQL-COMMAND(1:L)
-           MOVE X"00" TO SQL-COMMAND(L + 1:1)
+           COMPUTE SQL-LEN = FUNCTION LENGTH(FUNCTION TRIM(SQL-LIT))
+           MOVE SQL-LIT(1:SQL-LEN) TO SQL-COMMAND(1:SQL-LEN)
+           MOVE X"00" TO SQL-COMMAND(SQL-LEN + 1:1)
 
-           CALL STATIC "DB_QUERY" USING BY VALUE DBH, BY REFERENCE SQL-COMMAND RETURNING STMT
+*> Step 4: Execute query
+           CALL STATIC "DB_QUERY"
+               USING BY VALUE DBH, BY REFERENCE SQL-COMMAND
+               RETURNING STMT
            IF STMT = NULL-PTR THEN
                DISPLAY "Query failed! Stopping program."
                CALL STATIC "DB_DISCONNECT" USING BY VALUE DBH RETURNING RC
@@ -39,15 +50,22 @@
            END-IF
 
            DISPLAY "--- INITIAL BALANCE REPORT ---"
+
+*> Step 5: Fetch rows
            PERFORM FETCH-LOOP UNTIL RC NOT = 0
 
+*> Step 6: Disconnect
            CALL STATIC "DB_DISCONNECT" USING BY VALUE DBH RETURNING RC
            DISPLAY "--- End of Task 1 ---"
-           GOBACK.
+           STOP RUN.
 
-       FETCH-LOOP.
+FETCH-LOOP.
            MOVE SPACES TO C1, C2, C3
-           CALL STATIC "DB_FETCH" USING BY VALUE STMT, BY REFERENCE C1, C2, C3 RETURNING RC
+           CALL STATIC "DB_FETCH"
+               USING BY VALUE STMT, BY REFERENCE C1, C2, C3
+               RETURNING RC
            IF RC = 0 THEN
-               DISPLAY "Customer: " FUNCTION TRIM(C1) ", Balance: " FUNCTION TRIM(C2)
-           END-IF.
+               DISPLAY "Customer: " FUNCTION TRIM(C1)
+                       ", Balance: " FUNCTION TRIM(C2)
+           END-IF
+           .
