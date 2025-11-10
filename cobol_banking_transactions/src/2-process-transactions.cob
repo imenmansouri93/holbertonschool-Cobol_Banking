@@ -1,86 +1,130 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. process-transactions.
+       PROGRAM-ID. PROCESS-TRANSACTIONS.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT TRANSACTIONS-FILE ASSIGN TO "transactions.dat"
+               ORGANIZATION IS LINE SEQUENTIAL.
 
        DATA DIVISION.
        FILE SECTION.
-       FD  TRANSACTIONS-FILE
-           LABEL RECORDS ARE STANDARD
-           VALUE OF FILE-ID IS "transactions.dat".
-       01  TRANSACTION-REC  PIC X(200).
+       FD  TRANSACTIONS-FILE.
+       01  TRANSACTION-REC        PIC X(256).
 
        WORKING-STORAGE SECTION.
-       COPY "dbapi.cpy".
+       *> Database variables
+       01  DB-CONNSTR              PIC X(256).
+       01  SQL-COMMAND             PIC X(512).
+       01  DBH                     USAGE POINTER.
+       01  STMT                    USAGE POINTER.
+       01  NULL-PTR                USAGE POINTER.
+       01  RC                      PIC S9(9) COMP-5.
 
-       01  CONN-LIT  PIC X(200)
-           VALUE "host=localhost dbname=schooldb user=postgres password=postgres".
-       01  L-CONN   PIC 9(4) VALUE 0.
-       01  L-SQL    PIC 9(4) VALUE 0.
-       01  DUMMY-RC PIC S9(9) COMP-5.
-       01  LINE-DATA  PIC X(200) VALUE SPACES.
-       01  ACTION     PIC X(10) VALUE SPACES.
-       01  CUST-NAME  PIC X(64) VALUE SPACES.
-       01  ACCT-ID    PIC 9(6) VALUE 0.
-       01  AMOUNT     PIC 9(8)V99 VALUE 0.
-       01  FILE-STATUS PIC XX.
+       *> Transaction fields
+       01  ACTION                  PIC X(10).
+       01  NAME                    PIC X(64).
+       01  ACCOUNT-ID              PIC 9(6).
+       01  AMOUNT                  PIC 9(10)V99.
+
+       01  L-TRAN                  PIC 9(4) VALUE 0.
 
        PROCEDURE DIVISION.
        MAIN-PROCEDURE.
-           *> Connexion
+           *> Connect to database
            MOVE SPACES TO DB-CONNSTR
-           COMPUTE L-CONN = FUNCTION LENGTH(FUNCTION TRIM(CONN-LIT))
-           MOVE CONN-LIT(1:L-CONN) TO DB-CONNSTR(1:L-CONN)
-           MOVE X"00" TO DB-CONNSTR(L-CONN+1:1)
-           CALL STATIC "DB_CONNECT" USING DB-CONNSTR RETURNING DBH
-           IF DBH = NULL-PTR THEN
-               DISPLAY "Error: Unable to connect to the database."
+           STRING "host=127.0.0.1 dbname=schooldb user=postgres password=postgres"
+               DELIMITED BY SIZE
+               INTO DB-CONNSTR
+           END-STRING.
+
+           CALL "DB_CONNECT" USING BY VALUE DB-CONNSTR RETURNING DBH.
+           IF DBH = NULL-PTR
+               DISPLAY "Error: Unable to connect to database."
                STOP RUN
-           END-IF
+           END-IF.
 
-           *> Ouvrir le fichier
+           *> Open transactions file
            OPEN INPUT TRANSACTIONS-FILE
-           PERFORM UNTIL FILE-STATUS = "10"
-               READ TRANSACTIONS-FILE INTO LINE-DATA
-                   AT END
-                       MOVE "10" TO FILE-STATUS
-                   NOT AT END
-                       PERFORM PROCESS-LINE
-               END-READ
-           END-PERFORM
-           CLOSE TRANSACTIONS-FILE
+           IF RC NOT = 0
+               DISPLAY "Error: Cannot open transactions.dat"
+               CALL "DB_DISCONNECT" USING BY VALUE DBH RETURNING RC
+               STOP RUN
+           END-IF.
 
-           *> Déconnexion
-           CALL STATIC "DB_DISCONNECT" USING BY VALUE DBH RETURNING DUMMY-RC
+           PERFORM UNTIL RC NOT = 0
+               READ TRANSACTIONS-FILE INTO TRANSACTION-REC
+                   AT END MOVE 1 TO RC
+               END-READ
+               IF RC = 0
+                   PERFORM PROCESS-LINE
+               END-IF
+           END-PERFORM.
+
+           CLOSE TRANSACTIONS-FILE
+           CALL "DB_DISCONNECT" USING BY VALUE DBH RETURNING RC
            GOBACK.
 
        PROCESS-LINE.
-           UNSTRING LINE-DATA DELIMITED BY "," 
-               INTO ACTION, CUST-NAME, ACCT-ID, AMOUNT
+           *> Split line into fields ACTION;NAME;ACCOUNT-ID;AMOUNT
+           UNSTRING TRANSACTION-REC
+               DELIMITED BY ";"
+               INTO ACTION NAME ACCOUNT-ID AMOUNT
+           END-UNSTRING.
 
-           EVALUATE FUNCTION TRIM(ACTION)
+           EVALUATE ACTION
                WHEN "INSERT"
-                   *> Insert customer
-                   STRING "INSERT INTO customers(name) VALUES('" CUST-NAME "')" 
-                          DELIMITED BY SIZE INTO SQL-COMMAND
-                   CALL STATIC "DB_EXECUTE" USING BY VALUE DBH, BY REFERENCE SQL-COMMAND RETURNING DUMMY-RC
+                   *> Insert into customers
+                   STRING "INSERT INTO customers (name) VALUES ('"
+                          NAME
+                          "')" DELIMITED BY SIZE
+                          INTO SQL-COMMAND
+                   END-STRING.
+                   CALL "DB_EXECUTE" USING BY VALUE DBH SQL-COMMAND RETURNING STMT
+                   *> Retrieve last inserted customer id
+                   CALL "DB_GET_LAST_ID" USING BY VALUE DBH RETURNING ACCOUNT-ID
 
-                   *> Insert account
-                   STRING "INSERT INTO accounts(customer_id, balance) "
-                          "VALUES((SELECT MAX(id) FROM customers), " AMOUNT ")" 
-                          DELIMITED BY SIZE INTO SQL-COMMAND
-                   CALL STATIC "DB_EXECUTE" USING BY VALUE DBH, BY REFERENCE SQL-COMMAND RETURNING DUMMY-RC
-                   DISPLAY "Processed INSERT for " CUST-NAME
+                   *> Insert into accounts
+                   STRING "INSERT INTO accounts (customer_id, balance) VALUES ("
+                          ACCOUNT-ID
+                          ", "
+                          AMOUNT
+                          ")" DELIMITED BY SIZE
+                          INTO SQL-COMMAND
+                   END-STRING.
+                   CALL "DB_EXECUTE" USING BY VALUE DBH SQL-COMMAND RETURNING STMT
+                   DISPLAY "Processed INSERT for " NAME
 
-               WHEN "DEPOSIT"
-                   STRING "UPDATE accounts SET balance = balance + " AMOUNT
-                          " WHERE account_id = " ACCT-ID
-                          DELIMITED BY SIZE INTO SQL-COMMAND
-                   CALL STATIC "DB_EXECUTE" USING BY VALUE DBH, BY REFERENCE SQL-COMMAND RETURNING DUMMY-RC
-                   DISPLAY "Processed DEPOSIT for account " ACCT-ID
-
-               WHEN "WITHDRAW"
-                   STRING "UPDATE accounts SET balance = balance - " AMOUNT
-                          " WHERE account_id = " ACCT-ID
-                          DELIMITED BY SIZE INTO SQL-COMMAND
-                   CALL STATIC "DB_EXECUTE" USING BY VALUE DBH, BY REFERENCE SQL-COMMAND RETURNING DUMMY-RC
-                   DISPLAY "Processed WITHDRAW for account " ACCT-ID
+               WHEN "UPDATE"
+                   EVALUATE TRUE
+                       WHEN ACCOUNT-ID > 0 AND AMOUNT > 0
+                           *> Determine deposit or withdraw from NAME field (or extra field)
+                           *> Here we assume NAME field contains DEPOSIT/WITHDRAW
+                           IF NAME = "DEPOSIT"
+                               STRING "UPDATE accounts SET balance = balance + "
+                                      AMOUNT
+                                      " WHERE account_id = "
+                                      ACCOUNT-ID
+                                      DELIMITED BY SIZE
+                                      INTO SQL-COMMAND
+                               END-STRING.
+                               CALL "DB_EXECUTE" USING BY VALUE DBH SQL-COMMAND RETURNING STMT
+                               DISPLAY "Processed DEPOSIT for account " ACCOUNT-ID
+                           ELSE
+                               STRING "UPDATE accounts SET balance = balance - "
+                                      AMOUNT
+                                      " WHERE account_id = "
+                                      ACCOUNT-ID
+                                      DELIMITED BY SIZE
+                                      INTO SQL-COMMAND
+                               END-STRING.
+                               CALL "DB_EXECUTE" USING BY VALUE DBH SQL-COMMAND RETURNING STMT
+                               DISPLAY "Processed WITHDRAW for account " ACCOUNT-ID
+                           END-IF
+                   END-EVALUATE
+               WHEN OTHER
+                   DISPLAY "Unknown action: " ACTION
            END-EVALUATE.
+
+           MOVE SPACES TO ACTION NAME ACCOUNT-ID AMOUNT
+           .
