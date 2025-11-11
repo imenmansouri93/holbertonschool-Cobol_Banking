@@ -1,4 +1,7 @@
-IDENTIFICATION DIVISION.
+*****************************************************************
+      * HANDLE-EMPLOYEE - Batch Salary Processing with Error Logging
+      *****************************************************************
+       IDENTIFICATION DIVISION.
        PROGRAM-ID. HANDLE-EMPLOYEE.
        
        ENVIRONMENT DIVISION.
@@ -61,29 +64,30 @@ IDENTIFICATION DIVISION.
        01  WS-DATE-NUM             PIC 9(8).
        01  WS-TIME-NUM             PIC 9(6).
        01  WS-ERROR-MSG            PIC X(200).
+       01  WS-CMD                  PIC X(50).
        
        PROCEDURE DIVISION.
        MAIN-PROCEDURE.
-           DISPLAY "Enter Employee ID: "
-           ACCEPT WS-EMPLOYEE-ID
+           DISPLAY "Enter Employee ID: ".
+           ACCEPT WS-EMPLOYEE-ID.
            DISPLAY "[DEBUG] Searching for Employee ID: " 
-               WS-EMPLOYEE-ID
+               WS-EMPLOYEE-ID.
            
-           PERFORM SEARCH-AND-UPDATE
+           PERFORM SEARCH-AND-UPDATE.
            STOP RUN.
        
        SEARCH-AND-UPDATE.
-           MOVE 'N' TO WS-FOUND
-           MOVE 'N' TO WS-EOF
-           MOVE 'N' TO WS-OVERFLOW
+           MOVE 'N' TO WS-FOUND.
+           MOVE 'N' TO WS-EOF.
+           MOVE 'N' TO WS-OVERFLOW.
            
-           OPEN INPUT EMPLOYEE-FILE
+           OPEN INPUT EMPLOYEE-FILE.
            IF EMP-STATUS NOT = '00'
                DISPLAY "Error opening EMPLOYEES.DAT"
                STOP RUN
-           END-IF
+           END-IF.
            
-           OPEN OUTPUT TEMP-FILE
+           OPEN OUTPUT TEMP-FILE.
            
            PERFORM UNTIL WS-EOF = 'Y'
                READ EMPLOYEE-FILE
@@ -102,22 +106,24 @@ IDENTIFICATION DIVISION.
                            WRITE TEMP-RECORD FROM EMPLOYEE-RECORD
                        END-IF
                END-READ
-           END-PERFORM
+           END-PERFORM.
            
-           CLOSE EMPLOYEE-FILE
-           CLOSE TEMP-FILE
+           CLOSE EMPLOYEE-FILE.
+           CLOSE TEMP-FILE.
            
            IF WS-FOUND = 'N'
                DISPLAY "[DEBUG] Employee ID not found: " 
                    WS-EMPLOYEE-ID
                DISPLAY "Error: Employee ID not found."
                PERFORM LOG-NOT-FOUND-ERROR
-               CALL "SYSTEM" USING "rm TEMP.DAT"
+               MOVE "rm TEMP.DAT" TO WS-CMD
+               CALL "SYSTEM" USING WS-CMD
            ELSE
                IF WS-OVERFLOW = 'N'
                    PERFORM REPLACE-ORIGINAL-FILE
                ELSE
-                   CALL "SYSTEM" USING "rm TEMP.DAT"
+                   MOVE "rm TEMP.DAT" TO WS-CMD
+                   CALL "SYSTEM" USING WS-CMD
                END-IF
            END-IF.
        
@@ -125,7 +131,7 @@ IDENTIFICATION DIVISION.
            ADD WS-BONUS TO EMP-SALARY GIVING WS-NEW-SALARY
                ON SIZE ERROR
                    MOVE 'Y' TO WS-OVERFLOW
-                   DISPLAY "Error: Bonus too large. Salary update " &
+                   DISPLAY "Error: Bonus too large. Salary update "
                        "failed due to overflow."
                    PERFORM LOG-OVERFLOW-ERROR
                    WRITE TEMP-RECORD FROM EMPLOYEE-RECORD
@@ -139,11 +145,13 @@ IDENTIFICATION DIVISION.
            END-ADD.
        
        REPLACE-ORIGINAL-FILE.
-           CALL "SYSTEM" USING "rm EMPLOYEES.DAT"
-           CALL "SYSTEM" USING "mv TEMP.DAT EMPLOYEES.DAT".
+           MOVE "rm EMPLOYEES.DAT" TO WS-CMD.
+           CALL "SYSTEM" USING WS-CMD.
+           MOVE "mv TEMP.DAT EMPLOYEES.DAT" TO WS-CMD.
+           CALL "SYSTEM" USING WS-CMD.
        
        LOG-OVERFLOW-ERROR.
-           PERFORM GET-TIMESTAMP
+           PERFORM GET-TIMESTAMP.
            STRING WS-TIMESTAMP DELIMITED BY SIZE
                "  - ERROR: Bonus too large for Employee ID "
                DELIMITED BY SIZE
@@ -151,21 +159,21 @@ IDENTIFICATION DIVISION.
                ". Salary update failed due to overflow."
                DELIMITED BY SIZE
                INTO WS-ERROR-MSG
-           END-STRING
+           END-STRING.
            PERFORM WRITE-TO-LOG.
        
        LOG-NOT-FOUND-ERROR.
-           PERFORM GET-TIMESTAMP
+           PERFORM GET-TIMESTAMP.
            STRING WS-TIMESTAMP DELIMITED BY SIZE
                "  - ERROR: Employee ID " DELIMITED BY SIZE
                WS-EMPLOYEE-ID DELIMITED BY SIZE
                " not found in EMPLOYEES.DAT." DELIMITED BY SIZE
                INTO WS-ERROR-MSG
-           END-STRING
+           END-STRING.
            PERFORM WRITE-TO-LOG.
        
        WRITE-TO-LOG.
-           OPEN EXTEND ERROR-LOG
+           OPEN EXTEND ERROR-LOG.
            IF LOG-STATUS = '00' OR LOG-STATUS = '05'
                WRITE LOG-RECORD FROM WS-ERROR-MSG
                CLOSE ERROR-LOG
@@ -174,12 +182,13 @@ IDENTIFICATION DIVISION.
            END-IF.
        
        GET-TIMESTAMP.
-           ACCEPT WS-DATE-NUM FROM DATE YYYYMMDD
-           ACCEPT WS-TIME-NUM FROM TIME
+           ACCEPT WS-DATE-NUM FROM DATE YYYYMMDD.
+           ACCEPT WS-TIME-NUM FROM TIME.
            
-           MOVE WS-DATE-NUM(1:4) TO WS-YEAR
-           MOVE WS-DATE-NUM(5:2) TO WS-MONTH
-           MOVE WS-DATE-NUM(7:2) TO WS-DAY
-           MOVE WS-TIME-NUM(1:2) TO WS-HOUR
-           MOVE WS-TIME-NUM(3:2) TO WS-MINUTE
+           MOVE WS-DATE-NUM(1:4) TO WS-YEAR.
+           MOVE WS-DATE-NUM(5:2) TO WS-MONTH.
+           MOVE WS-DATE-NUM(7:2) TO WS-DAY.
+           MOVE WS-TIME-NUM(1:2) TO WS-HOUR.
+           MOVE WS-TIME-NUM(3:2) TO WS-MINUTE.
            MOVE WS-TIME-NUM(5:2) TO WS-SECOND.
+    
