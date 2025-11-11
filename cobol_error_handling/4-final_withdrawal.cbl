@@ -78,6 +78,7 @@
        01  WS-CMD                  PIC X(50).
        01  WS-INPUT-AMT            PIC X(10).
        01  WS-VALID-AMT            PIC X VALUE 'Y'.
+       01  WS-TEMP-NUM             PIC 9(5)V99.
        
        PROCEDURE DIVISION.
        MAIN-PROCEDURE.
@@ -88,9 +89,12 @@
            
            PERFORM VALIDATE-INPUT.
            IF WS-VALID-AMT = 'Y'
-               PERFORM CHECK-AUTHORIZATION
-               IF WS-AUTHORIZED = 'Y'
-                   PERFORM PROCESS-WITHDRAWAL
+               PERFORM CHECK-ACCOUNT-EXISTS
+               IF WS-FOUND = 'Y'
+                   PERFORM CHECK-AUTHORIZATION
+                   IF WS-AUTHORIZED = 'Y'
+                       PERFORM PROCESS-WITHDRAWAL
+                   END-IF
                END-IF
            END-IF.
            
@@ -98,7 +102,8 @@
        
        VALIDATE-INPUT.
            MOVE 'Y' TO WS-VALID-AMT.
-           IF WS-INPUT-AMT IS NUMERIC
+           
+           IF FUNCTION TEST-NUMVAL(WS-INPUT-AMT) = 0
                COMPUTE WS-WITHDRAWAL = FUNCTION NUMVAL(WS-INPUT-AMT)
                    ON SIZE ERROR
                        MOVE 'N' TO WS-VALID-AMT
@@ -109,6 +114,35 @@
                MOVE 'N' TO WS-VALID-AMT
                DISPLAY "Error: Invalid amount."
                PERFORM LOG-INVALID-AMOUNT
+           END-IF.
+       
+       CHECK-ACCOUNT-EXISTS.
+           MOVE 'N' TO WS-FOUND.
+           MOVE 'N' TO WS-EOF.
+           
+           OPEN INPUT ACCOUNTS-FILE.
+           IF ACC-STATUS NOT = '00'
+               DISPLAY "Error opening ACCOUNTS.DAT"
+               STOP RUN
+           END-IF.
+           
+           PERFORM UNTIL WS-EOF = 'Y'
+               READ ACCOUNTS-FILE
+                   AT END
+                       MOVE 'Y' TO WS-EOF
+                   NOT AT END
+                       IF ACC-ID = WS-ACCOUNT-ID
+                           MOVE 'Y' TO WS-FOUND
+                           MOVE 'Y' TO WS-EOF
+                       END-IF
+               END-READ
+           END-PERFORM.
+           
+           CLOSE ACCOUNTS-FILE.
+           
+           IF WS-FOUND = 'N'
+               DISPLAY "Error: Account ID not found."
+               PERFORM LOG-NOT-FOUND
            END-IF.
        
        CHECK-AUTHORIZATION.
@@ -141,7 +175,6 @@
            END-IF.
        
        PROCESS-WITHDRAWAL.
-           MOVE 'N' TO WS-FOUND.
            MOVE 'N' TO WS-EOF.
            
            OPEN INPUT ACCOUNTS-FILE.
@@ -158,7 +191,6 @@
                        MOVE 'Y' TO WS-EOF
                    NOT AT END
                        IF ACC-ID = WS-ACCOUNT-ID
-                           MOVE 'Y' TO WS-FOUND
                            PERFORM EXECUTE-WITHDRAWAL
                        ELSE
                            WRITE TEMP-RECORD FROM ACCOUNT-RECORD
@@ -169,14 +201,7 @@
            CLOSE ACCOUNTS-FILE.
            CLOSE TEMP-FILE.
            
-           IF WS-FOUND = 'N'
-               DISPLAY "Error: Account ID not found."
-               PERFORM LOG-NOT-FOUND
-               MOVE "rm TEMP.DAT" TO WS-CMD
-               CALL "SYSTEM" USING WS-CMD
-           ELSE
-               PERFORM REPLACE-ORIGINAL-FILE
-           END-IF.
+           PERFORM REPLACE-ORIGINAL-FILE.
        
        EXECUTE-WITHDRAWAL.
            IF ACC-BALANCE < WS-WITHDRAWAL
